@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import filesystem from 'fs';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
