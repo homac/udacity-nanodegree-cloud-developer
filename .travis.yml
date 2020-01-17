@@ -1,4 +1,19 @@
-language: node_js
-node_js:
- - v13.6.0
+dist: trusty
 
+env:
+  global:
+  - secure: anBx9kETbKrPv/nylFUz37Jmgg0nsLvN8if7mLfUz3EHkOhEcJ07teHW1t3gaiUr75ifKvZ8EqpBDemkD6LLtSimLTEkriRhhtZK+SqY5AWmTUxA6kBogTEqbJUJmf2ojzlCrkcjcIr/z7p3/J9KXzua2264geda04MKDSzqCJVKgljJcFWaiq9GqvhL41aNNOf4SrJY/5AqhX8J5vDtVvGU0RsN4YPGzFLgOXcfZn3W1k+gTMr+fptQWi4kCUAZroKfm2nid7mpP6HfMvOT9fXJfKUxw6kpguQtqGpPH+H4msb5FZQNE4efeB8NdSs6HHQt0xhBL8MT748G+fd/0Dz1cwj++/jwMmcaa2/nIVGbAaPXOmjBcQKczdt3/LKiMpVY9aVGDp3JrWIChmuhUCEAGdaxVtRFYf3RP6PiSakfMg84O/KCkQm/u2mEzMSGfYM8bgm39IlGuFJEtvU93vzHcLLXl2YcDazOBGH7rP1QC5YMF1+fuNDLUs6j6BCs/xdaqGrKN4nV3tP8csOZhCxAXS+oCqysGCEr0GgwliPpFcDrXnSSRvMFssXiNxnBoKhTudvkI5QqrzljyCwBTyOVwXlg2maLbYOZkhdbRthnHpxsoshM1etRqu751TJeXN8eeZF931SYAv0FabUb2ZtyQTDTDPEdxXZ/bFssvGQ=
+  - secure: Q6iz2DYW+MPchTqmkRdPz5PLt/sDgZkYKegsDNfEAr48vBm+grIkV8In0QyW5onSRDnSf5oRAOgivblmYBHJq5TFUIonFbeB5khmQMnW8L7l/5dTCPJgbfd0uXeJEQ49dthE4bEQ4NxIDqhpLeM78G3GGlxXPZnM1YNCVsddFSYKNvf7OGJLfwwLlmP3hTw4z/Bg77UazGeHoFhlL20+ecIGpQrzQfyR3a0E4tnUhWS++sFs5f311s3kRI7EHIByVB4/m3ZBnBfMGm2Ma893iGO4t12p25sXm8i8HDZuYirwdfZGTGt3k7GFPtTep2jochM0GaBExwH0LwFWPK7UZcKRaSHhyp/A6kRDrgQn0+fHemrzOfoOiQ0i5V4voLirmUQtSrSLrO8eanPlgP9ikEAdaPy8kQppsqq/GyrKM77lnyZDORzRLo7YUwynSGRDk0+Vb2A5t2JkSFqxJMebgVHoOv2RGJ8Zf/Tz8jexsnqcRcyyPhYHgQGfy7EE1SmeOyvyB2qBFE5zucye+7x9BJDSuC6z109rcH4Dsz6uBbyKy7BqzVUPWdL7zV6zf0gwDn0ip1K3IoiMSejHXTnC8BfVHCKmepcoiLQ+VgI2IhQRe3LgFiYsjbT3miNCCBvc2BjCmlNbogWZfMrj9sDX6JdrXBr8lIuDcLYQQHp20TQ=
+
+jobs:
+  include:
+    - stage: build and push docker image
+      script:
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      - docker build -t udacity-restapi-feed .
+      - docker images
+      - docker tag udacity-restapi-feed $DOCKER_USERNAME/udacity-restapi-feed
+      - docker push $DOCKER_USERNAME/udacity-restapi-feed
+    - stage: test
+      script:
+      - docker run --rm $DOCKER_USERNAME/udacity-restapi-feed npm run test
