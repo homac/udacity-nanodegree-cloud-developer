@@ -1,4 +1,17 @@
-language: node_js
-node_js:
- - v13.6.0
-
+dist: trusty
+jobs:
+  include:
+  - stage: build and push docker image
+    script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker build -t udacity-frontend .
+    - docker images
+    - docker tag udacity-frontend $DOCKER_USERNAME/udacity-frontend
+    - docker push $DOCKER_USERNAME/udacity-frontend
+  - stage: test
+    script:
+    - docker run --rm $DOCKER_USERNAME/udacity-frontend ls /usr/share/nginx/html/
+env:
+  global:
+  - secure: W6CuGeIpZQTaBQ2bPDY8913ba94kn6ca0Gqu2vxUXYTHv+k8Iaq2dDB3CsICjWwi7nqugP4a4IO7HEq9euqSdW04vtk3ttV7tcDRQqsZ9NXGxn8fxUsNwhyDPyleYbyOBF0XySJo1/yq6/4VRj2sgkzDZNFMUaXb2ktQjJpVBqOwvYZ136k5lsSHuGI0TQjOrXVh2kwQD+o0+aCcbx+ZhNDCckE6wClpwqIIoZNiByoCwl1rwAMhkZ1+ThdEGuVM19bng7n4CMYuRx0N9WX1N5gAa2zciKp7XgEZgrLUYPFbE2WAGxnL/kri96hCxANgsT42sehtcq0kaNmuWyk7W9wvKjZ1TKRKbGts7RuZyMtp0b85rDV7GDiZP4ZalsqxEolCv0+emlHBzfGBN+h22qBy/Um/tBJ+MESPbSB1hP/8os2fOdcFdC/CGgagZaOW8jbgP3m9UwdR6hf/YJosCtUrNi3wVeNHy0QvLpOxWn2pjGV5peP7sck4+hb7LENy1WAw3aPuWjtOuLT7xhVFHilrscJnit6xn6mNXpQ7YBFMyn2bu2dVojuu1pKCTVcZGKU448b56a9B6pODzQ3ZjpMZqYPzvVTi7qqACxCKbxoMnyJiVxP/8QQrzcMWYcHCqjrI8/87rIfFexfUnfO+gnDedaDIPkvpp3efE28c8/4=
+  - secure: rv2krTaaN/bhomK0D6Ust1+sbq3XL4+DDVqh31G6wiIQZ7DpKqmk2GxE1HKnDP9VFrciDyQZkA8OdiXZoxXc3DQtjlz2uw682MaNT4dKKU3GlcWxM/YINdQBFlNI7szSbbO7/SjfCL5YZiUfgRzQf+irV974sHtPUGRwpN7N46rUaftX9zNEB+S03214BvUSVCNOGu/fbQ/x6idLUx4R+4ZHY2yl+KgUN8C4usDRjgO5FBmZjnzZ3a6D5LplplN09/NdalOtIYn/TURm4x+5ufIqC09hv0Zdxy/zgAf5JcI+IaTZP/CNZ5HFy6JSH0MEM7UjNgWyEKgYeBNKc6nX72I9U+rPx5gHJ9AFj1LwYQcsEHoD4H5RIrMFxKh5J6FmwN8IFGEJ5voXpVy9qFtI6IIrWmUbGb72EQiJIwGS2dwiSVR14CvryQYPhV6WrCt5CfTcgwepYSdEUQODCU+eS2f8YOb1QpooD37GpdldIk4X5RlJPx1EOynhptSWhPNxJ3PA2mcFm+Wdal8/zq8yFhFUs7Attm+nMusXeL/RKx9qGMmcixQpFRYzd54dymJEH/EDhOiw936oGZraFkz8KPkiN6dMwKUCFFKQRLSj896tJ8urlpHzsN7Soqr/WDD9Lb3qWtrq+x9lPDh3ihFTRW1z9l6cE13eH9XHXy4dIQU=
