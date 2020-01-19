@@ -12,8 +12,8 @@ jobs:
       - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       - docker build -t udacity-restapi-feed .
       - docker images
-      - docker tag udacity-restapi-feed $DOCKER_USERNAME/udacity-restapi-feed
-      - docker push $DOCKER_USERNAME/udacity-restapi-feed
+      - docker tag udacity-restapi-feed $DOCKER_USERNAME/udacity-restapi-feed:${TRAVIS_COMMIT}
+      - docker push $DOCKER_USERNAME/udacity-restapi-feed:${TRAVIS_COMMIT}
     - stage: test
       script:
       - docker run --rm $DOCKER_USERNAME/udacity-restapi-feed npm run test
@@ -23,7 +23,7 @@ jobs:
         if [[ ($TRAVIS_BRANCH == master) &&
               ($TRAVIS_PULL_REQUEST == false) ]] ; then
           curl -LO --retry 3 https://raw.githubusercontent.com/plume-lib/trigger-travis/master/trigger-travis.sh
-          sh trigger-travis.sh --pro homac udacity-cloud-developer-c3-deployment $TRAVIS_ACCESS_TOKEN
+          sh trigger-travis.sh --pro homac udacity-cloud-developer-c3-deployment $TRAVIS_ACCESS_TOKEN $TRAVIS_COMMIT
         else
           echo "trigger-travis.sh did not run"
         fi
