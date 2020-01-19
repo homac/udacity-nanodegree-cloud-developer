@@ -15,9 +15,10 @@ jobs:
     - sed -i -e 's|KUBE_ADMIN_CERT|'"${KUBE_ADMIN_CERT}"'|g' kubeconfig
     - sed -i -e 's|KUBE_ADMIN_KEY|'"${KUBE_ADMIN_KEY}"'|g' kubeconfig
     - sed -i -e 's|KUBE_USERNAME|'"${KUBE_USERNAME}"'|g' kubeconfig
-    - kubectl --kubeconfig ./kubeconfig get pods
+    - export KUBECONFIG=./kubeconfig
+    - kubectl get pods
     - kubectl set image deployment backend-feed backend-feed=homac/udacity-restapi-feed:latest
     - kubectl set image deployment backend-user backend-user=homac/udacity-restapi-user:latest
     - kubectl set image deployment frontend frontend=homac/udacity-frontend:latest
     - kubectl set image deployment reverseproxy reverseproxy=homac/reverseproxy:latest
-    - kubectl --kubeconfig ./kubeconfig get pods
+    - kubectl ./kubeconfig get pods
