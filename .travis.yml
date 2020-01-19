@@ -23,6 +23,7 @@ jobs:
       script:
       - docker run --rm $DOCKER_USERNAME/udacity-restapi-feed:${TRAVIS_COMMIT} npm run test
     - stage: update image in k8s cluster
+      if: branch = master
       script:
       - git clone https://github.com/homac/udacity-cloud-developer-c3-deployment
       - cd udacity-cloud-developer-c3-deployment/k8s/
