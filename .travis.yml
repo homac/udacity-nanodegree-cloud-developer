@@ -16,11 +16,11 @@ jobs:
     - sed -i -e 's|KUBE_ADMIN_KEY|'"${KUBE_ADMIN_KEY}"'|g' kubeconfig
     - sed -i -e 's|KUBE_USERNAME|'"${KUBE_USERNAME}"'|g' kubeconfig
     - export KUBECONFIG=./kubeconfig
-    - echo "travis commit message ${TRAVIS_COMMIT_MESSAGE}"
+    - echo "travis commit message ${TRAVIS_JOB_NAME}"
     - kubectl get pods
-    - echo "kubectl set image deployment backend-feed backend-feed=homac/udacity-restapi-feed:${TRAVIS_COMMIT_MESSAGE}"
-    - kubectl set image deployment backend-feed backend-feed=homac/udacity-restapi-feed:${TRAVIS_COMMIT_MESSAGE}
-    - kubectl set image deployment backend-user backend-user=homac/udacity-restapi-user:${TRAVIS_COMMIT_MESSAGE}
-    - kubectl set image deployment frontend frontend=homac/udacity-frontend:${TRAVIS_COMMIT_MESSAGE}
-    - kubectl set image deployment reverseproxy reverseproxy=homac/reverseproxy:${TRAVIS_COMMIT_MESSAGE}
+    - echo "kubectl set image deployment backend-feed backend-feed=homac/udacity-restapi-feed:${TRAVIS_JOB_NAME}"
+    - kubectl set image deployment backend-feed backend-feed=homac/udacity-restapi-feed:${TRAVIS_JOB_NAME}
+    - kubectl set image deployment backend-user backend-user=homac/udacity-restapi-user:${TRAVIS_JOB_NAME}
+    - kubectl set image deployment frontend frontend=homac/udacity-frontend:${TRAVIS_JOB_NAME}
+    - kubectl set image deployment reverseproxy reverseproxy=homac/reverseproxy:${TRAVIS_JOB_NAME}
     - kubectl get pods
