@@ -21,4 +21,4 @@ jobs:
     - kubectl set image deployment backend-user backend-user=homac/udacity-restapi-user:latest
     - kubectl set image deployment frontend frontend=homac/udacity-frontend:latest
     - kubectl set image deployment reverseproxy reverseproxy=homac/reverseproxy:latest
-    - kubectl ./kubeconfig get pods
+    - kubectl get pods
