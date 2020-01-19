@@ -33,5 +33,5 @@ jobs:
     - sed -i -e 's|KUBE_USERNAME|'"${KUBE_USERNAME}"'|g' kubeconfig
     - export KUBECONFIG=./kubeconfig
     - kubectl get pods
-    - kubectl set image deployment backend-user backend-feed=homac/udacity-restapi-user:${TRAVIS_COMMIT}
+    - kubectl set image deployment backend-user backend-user=homac/udacity-restapi-user:${TRAVIS_COMMIT}
     - kubectl get pods
