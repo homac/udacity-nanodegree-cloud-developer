@@ -16,14 +16,17 @@ jobs:
       - docker push $DOCKER_USERNAME/udacity-restapi-feed:${TRAVIS_COMMIT}
     - stage: test
       script:
-      - docker run --rm $DOCKER_USERNAME/udacity-restapi-feed npm run test
-    - stage: trigger redeploy of cluster
-      script: |
-        echo "TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
-        if [[ ($TRAVIS_BRANCH == master) &&
-              ($TRAVIS_PULL_REQUEST == false) ]] ; then
-          curl -LO --retry 3 https://raw.githubusercontent.com/plume-lib/trigger-travis/master/trigger-travis.sh
-          sh trigger-travis.sh --pro homac udacity-cloud-developer-c3-deployment $TRAVIS_ACCESS_TOKEN $TRAVIS_COMMIT
-        else
-          echo "trigger-travis.sh did not run"
-        fi
+      - docker run --rm $DOCKER_USERNAME/udacity-restapi-feed:${TRAVIS_COMMIT} npm run test
+    - stage: redeploy in k8s cluster
+      script:
+      - git clone https://github.com/homac/udacity-cloud-developer-c3-deployment
+      - cd udacity-cloud-developer-c3-deployment/k8s/
+      - sed -i -e 's|KUBE_CA_CERT|'"${KUBE_CA_CERT}"'|g' kubeconfig
+      - sed -i -e 's|KUBE_ENDPOINT|'"${KUBE_ENDPOINT}"'|g' kubeconfig
+      - sed -i -e 's|KUBE_ADMIN_CERT|'"${KUBE_ADMIN_CERT}"'|g' kubeconfig
+      - sed -i -e 's|KUBE_ADMIN_KEY|'"${KUBE_ADMIN_KEY}"'|g' kubeconfig
+      - sed -i -e 's|KUBE_USERNAME|'"${KUBE_USERNAME}"'|g' kubeconfig
+      - export KUBECONFIG=./kubeconfig
+      - kubectl get pods
+      - kubectl set image deployment backend-feed backend-feed=homac/udacity-restapi-feed:${TRAVIS_COMMIT}
+      - kubectl get pods
