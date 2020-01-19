@@ -16,7 +16,7 @@ spec:
         api: external
     spec:
       containers:
-      - image: homac/udacity-frontend
+      - image: homac/udacity-frontend:8bc6478c90f092265f81d3185b74967df73500cd
         name: frontend
         imagePullPolicy: Always
         ports:
