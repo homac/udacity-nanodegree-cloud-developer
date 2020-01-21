@@ -4,9 +4,34 @@ import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } f
 
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const newTodo: CreateTodoRequest = JSON.parse(event.body)
+import {createTodo} from "../../businessLogic/todo";
 
-  // TODO: Implement creating a new TODO item
-  return undefined
+const AWS = require('aws-sdk')
+
+const docClient = new AWS.DynamoDB.DocumentClient();
+const todoTable = process.env.TODOS_TABLE
+const bucketName = process.env.S3_BUCKET_NAME
+
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
+  console.log("Processing Event ", event);
+
+  // DONE: Implement creating a new TODO item
+  const authorization = event.headers.Authorization
+  const split = authorization.split(' ')
+  const jwtToken = split[1]
+
+  const newTodo: CreateTodoRequest = JSON.parse(event.body)
+  const todoItem = await createTodo(newTodo, jwtToken)
+
+  return {
+      statusCode: 201,
+      headers: {
+          "Access-Control-Allow-Origin": "*",
+          'Access-Control-Allow-Credentials': true
+      },
+      body: JSON.stringify({
+          "item": todoItem
+      }),
+  }
 }
