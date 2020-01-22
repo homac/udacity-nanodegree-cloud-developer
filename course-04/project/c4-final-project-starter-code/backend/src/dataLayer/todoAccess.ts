@@ -11,11 +11,10 @@ const XAWS = AWSXRay.captureAWS(AWS)
 
 export class TodoAccess {
     constructor(
-        private readonly docClient: DocumentClient = createDynamoDBClient(),
-        private readonly s3Client: Types = new AWS.S3({signatureVersion: 'v4'}),
+        private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
+        private readonly s3Client: Types = new XAWS.S3({signatureVersion: 'v4'}),
         private readonly todoTable = process.env.TODOS_TABLE,
-        private readonly s3BucketName = process.env.S3_BUCKET_NAME,
-        private readonly urlExpiration = process.env.SIGNED_URL_EXPIRATION) {
+        private readonly s3BucketName = process.env.S3_BUCKET_NAME) {
     }
 
     async getAllTodos(userId: string): Promise<TodoItem[]> {
@@ -100,28 +99,12 @@ export class TodoAccess {
     async generateUploadUrl(todoId: string): Promise<string> {
         console.log("Generating URL");
 
-        const s3 = new AWS.S3({
-          signatureVersion: 'v4'
-        })
-
-        const url = s3.getSignedUrl('putObject', {
+        const url = this.s3Client.getSignedUrl('putObject', {
           Bucket: this.s3BucketName,
           Key: todoId,
-          Expires: this.urlExpiration
+          Expires: 300
         })
 
         return url as string;
     }
-}
-
-function createDynamoDBClient() {
-  if (process.env.IS_OFFLINE) {
-    console.log('Creating a local DynamoDB instance')
-    return new XAWS.DynamoDB.DocumentClient({
-      region: 'localhost',
-      endpoint: 'http://localhost:8000'
-    })
-  }
-
-  return new XAWS.DynamoDB.DocumentClient()
 }
