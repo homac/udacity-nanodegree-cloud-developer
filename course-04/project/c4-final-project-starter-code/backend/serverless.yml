@@ -10,6 +10,10 @@ provider:
   name: aws
   runtime: nodejs12.x
 
+  tracing:
+    lambda: true
+    ApiGateway: true
+
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-central-1'}
 

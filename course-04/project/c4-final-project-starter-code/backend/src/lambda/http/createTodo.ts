@@ -6,9 +6,6 @@ import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 
 import {createTodo} from "../../businessLogic/todo";
 
-const AWS = require('aws-sdk')
-
-const docClient = new AWS.DynamoDB.DocumentClient();
 const todoTable = process.env.TODOS_TABLE
 const bucketName = process.env.S3_BUCKET_NAME
 
