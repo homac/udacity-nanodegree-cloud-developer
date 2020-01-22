@@ -8,9 +8,6 @@ import { parseUserId } from '../../auth/utils'
 
 import {getAllTodos} from "../../businessLogic/todo";
 
-const AWS = require('aws-sdk')
-
-const docClient = new AWS.DynamoDB.DocumentClient();
 const todoTable = process.env.TODOS_TABLE
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {

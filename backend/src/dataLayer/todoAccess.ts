@@ -1,4 +1,5 @@
 import * as AWS from "aws-sdk";
+import * as AWSXRay from 'aws-xray-sdk'
 import {DocumentClient} from "aws-sdk/clients/dynamodb";
 import {Types} from 'aws-sdk/clients/s3';
 import {TodoItem} from "../models/TodoItem";
@@ -6,9 +7,11 @@ import {TodoUpdate} from "../models/TodoUpdate";
 
 import { parseUserId } from '../auth/utils'
 
+const XAWS = AWSXRay.captureAWS(AWS)
+
 export class TodoAccess {
     constructor(
-        private readonly docClient: DocumentClient = new AWS.DynamoDB.DocumentClient(),
+        private readonly docClient: DocumentClient = createDynamoDBClient(),
         private readonly s3Client: Types = new AWS.S3({signatureVersion: 'v4'}),
         private readonly todoTable = process.env.TODOS_TABLE,
         private readonly s3BucketName = process.env.S3_BUCKET_NAME,
@@ -109,4 +112,16 @@ export class TodoAccess {
 
         return url as string;
     }
+}
+
+function createDynamoDBClient() {
+  if (process.env.IS_OFFLINE) {
+    console.log('Creating a local DynamoDB instance')
+    return new XAWS.DynamoDB.DocumentClient({
+      region: 'localhost',
+      endpoint: 'http://localhost:8000'
+    })
+  }
+
+  return new XAWS.DynamoDB.DocumentClient()
 }

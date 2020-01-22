@@ -7,9 +7,6 @@ import {generateUploadUrl} from "../../businessLogic/todo";
 import { createLogger } from '../../utils/logger'
 const logger = createLogger('generateUploadUrl')
 
-const AWS = require('aws-sdk')
-const docClient = new AWS.DynamoDB.DocumentClient()
-
 const todoTable = process.env.TODOS_TABLE
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
