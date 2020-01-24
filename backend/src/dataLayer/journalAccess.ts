@@ -59,14 +59,16 @@ export class JournalAccess {
                 "entryId": entryId.toString()
 
             },
-            UpdateExpression: "set #name=:name, #dueDate=:dueDate, #done=:done",
+            UpdateExpression: "set #title=:title, #description=:description, #dueDate=:dueDate, #done=:done",
             ExpressionAttributeNames:{
-              "#name": "name",
+              "#title": "title",
+              "#description": "description",
               "#dueDate": "dueDate",
               "#done": "done"
             },
             ExpressionAttributeValues:{
-                ":name": entryUpdate.name,
+                ":title": entryUpdate.title,
+                ":description": entryUpdate.description,
                 ":dueDate": entryUpdate.dueDate,
                 ":done": entryUpdate.done
             },
