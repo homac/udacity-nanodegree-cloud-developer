@@ -2,36 +2,31 @@ import 'source-map-support/register'
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 
-import { createLogger } from '../../utils/logger'
+import { JournalEntry } from '../../models/JournalEntry'
 
 import { parseUserId } from '../../auth/utils'
 
-import {deleteTodo} from "../../businessLogic/todo";
+import {getAllEntries} from "../../businessLogic/journal";
 
-const todoTable = process.env.TODOS_TABLE
+const journalTable = process.env.JOURNAL_TABLE
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const todoId = event.pathParameters.todoId
+  console.log(event)
 
-  console.log('Processing event: ', event)
-
-  // DONE: Implement creating a new TODO item
   const authorization = event.headers.Authorization
   const split = authorization.split(' ')
   const jwtToken = split[1]
 
-  const result = await deleteTodo(todoId, jwtToken);
-
-  console.log('Processing result: ', {result: result})
+  const items = await getAllEntries(jwtToken);
 
   return {
-    statusCode: 201,
+    statusCode: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({
-      result
+      items
     })
   }
 }
