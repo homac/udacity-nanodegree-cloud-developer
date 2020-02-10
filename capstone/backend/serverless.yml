@@ -1,0 +1,213 @@
+service:
+  name: cloud-developer-capstone
+
+plugins:
+  - serverless-webpack
+  - serverless-iam-roles-per-function
+  - serverless-reqvalidator-plugin
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+  tracing:
+    lambda: true
+    ApiGateway: true
+
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'eu-central-1'}
+
+  environment:
+    PROJECT_NAME: cloud-developer-journal-capstone
+    JOURNAL_TABLE: cloud-developer-journal-${self:provider.stage}
+    S3_BUCKET_NAME: cloud-developer-journal-${self:provider.stage}
+    SIGNED_URL_EXPIRATION: 300
+
+functions:
+
+  Auth:
+    handler: src/lambda/auth/auth0Authorizer.handler
+
+  GetEntries:
+    handler: src/lambda/http/getEntries.handler
+    events:
+      - http:
+          method: get
+          path: entries
+          cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+    iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-get-entires-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.JOURNAL_TABLE}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
+
+  CreateEntry:
+    handler: src/lambda/http/createEntry.handler
+    events:
+      - http:
+          method: post
+          path: entries
+          cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+    iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-create-entry-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.JOURNAL_TABLE}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
+
+  UpdateEntry:
+    handler: src/lambda/http/updateEntry.handler
+    events:
+      - http:
+          method: patch
+          path: entries/{entryId}
+          cors: true
+          authorizer: Auth
+          documentation:
+            summary: "Update a journal entry"
+            description: "Update a journal entry"
+            requestModels:
+              "application/json": UpdateEntryRequest
+          reqValidatorName: RequestBodyValidator
+    iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-update-entry-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.JOURNAL_TABLE}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
+
+  DeleteEntry:
+    handler: src/lambda/http/deleteEntry.handler
+    events:
+      - http:
+          method: delete
+          path: entries/{entryId}
+          cors: true
+          authorizer: Auth
+    iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-delete-entry-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.JOURNAL_TABLE}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
+    iamManagedPolicies:
+      - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+
+  # DONE: Configure this function
+  GenerateUploadUrl:
+    handler: src/lambda/http/generateUploadUrl.handler
+    events:
+      - http:
+          method: post
+          path: entries/{entryId}/attachment
+          cors: true
+          authorizer: Auth
+    iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-s3-upload-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:*
+        Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET_NAME}/*
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
+
+resources:
+  Resources:
+    # DONE: Add any necessary AWS resources
+    JournalTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: entryId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: entryId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.JOURNAL_TABLE}
+    onlyBody:
+      Type: "AWS::ApiGateway::RequestValidator"
+      Properties:
+        Name: 'only-body'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET_NAME}
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - PUT
+                - GET
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 300
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: MyPolicy
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.S3_BUCKET_NAME}/*'
+        Bucket: !Ref AttachmentsBucket
